@@ -20,7 +20,7 @@ let character = {
 
 // Inicializar perícias com valor 0
 skills.forEach(skill => {
-    character.skills[skill] = 0;
+    character.skills[skill] = 40;
 });
 
 // Navegação entre páginas
@@ -118,10 +118,7 @@ function showQuickRollModal(skillName, roll, skillValue, result) {
             html += '<div class="result-success">⭐ SUCESSO BOM!</div>';
         }
     }
-    
-    if (result.critical !== null) {
-        html += `<div class="result-success" style="background: rgba(220, 38, 38, 0.2); border-color: var(--accent-red); color: var(--accent-red);">🔥 CRÍTICO NÍVEL ${result.critical}!</div>`;
-    }
+
     
     resultDiv.innerHTML = html;
     modal.classList.add('show');
@@ -211,21 +208,13 @@ function evaluateSkillRoll(roll, skillValue) {
         success: roll <= skillValue,
         good: roll <= good,
         extreme: roll <= extreme,
-        critical: getCriticalLevel(roll)
+       
     };
     
     return result;
 }
 
-// Determinar nível crítico
-function getCriticalLevel(roll) {
-    if (roll <= 10) return 0;
-    if (roll <= 35) return 1;
-    if (roll <= 59) return 2;
-    if (roll <= 75) return 3;
-    if (roll <= 89) return 4;
-    return 5;
-}
+
 
 // Teste de perícia completo
 function rollSkillTest() {
@@ -270,9 +259,7 @@ function displaySkillResult(skillName, roll, skillValue, result) {
         }
     }
     
-    if (result.critical !== null) {
-        html += `<div class="result-success" style="background: rgba(220, 38, 38, 0.2); border-color: var(--accent-red); color: var(--accent-red);">🔥 CRÍTICO NÍVEL ${result.critical}</div>`;
-    }
+    
     
     resultBox.innerHTML = html;
     resultBox.classList.add('show');
@@ -342,9 +329,7 @@ function displayAdvantageResult(skillName, rolls, finalRoll, skillValue, result,
         }
     }
     
-    if (result.critical !== null) {
-        html += `<div class="result-success" style="background: rgba(220, 38, 38, 0.2); border-color: var(--accent-red); color: var(--accent-red);">🔥 CRÍTICO NÍVEL ${result.critical}</div>`;
-    }
+    
     
     resultBox.innerHTML = html;
     resultBox.classList.add('show');
