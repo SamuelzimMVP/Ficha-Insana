@@ -1,3 +1,5 @@
+console.log("SCRIPT CARREGOU");
+
 // Lista de perícias do sistema
 const skills = [
     'Destreza', 'Agilidade', 'Luta', 'Contra-ataque',
@@ -19,7 +21,7 @@ let character = {
 };
 
 // Inicializar perícias com valor 0
-skills.forEach(skill => {
+skills.forEach(skill => {s
     character.skills[skill] = 40;
 });
 
@@ -91,31 +93,32 @@ function renderSkills() {
 // Rolagem rápida de perícia (botão ao lado do atributo)
 function quickRollSkill(skillName) {
     const skillValue = character.skills[skillName];
-
-    const type = document.getElementById('auto-advantage-type')?.value || 'normal';
-    const count = parseInt(document.getElementById('auto-advantage-count')?.value) || 1;
+    const mod = parseInt(document.getElementById('advantage-mod')?.value) || 0;
 
     let roll;
     let rolls = [];
 
-    if (type === 'normal' || count < 2) {
+    if (Math.abs(mod) <= 1) {
         roll = rollDice(100);
     } else {
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < Math.abs(mod); i++) {
             rolls.push(rollDice(100));
         }
-        roll = type === 'advantage'
+        roll = mod > 0
             ? Math.min(...rolls)
             : Math.max(...rolls);
     }
 
     const result = evaluateSkillRoll(roll, skillValue);
 
-    showQuickRollModal(skillName, roll, skillValue, result, rolls, type);
+    showQuickRollModal(skillName, roll, skillValue, result, rolls, mod);
 }
 
 
+
+
 function showQuickRollModal(skillName, roll, skillValue, result, rolls = [], type = 'normal') {
+
     const modal = document.getElementById('quick-roll-modal');
     const resultDiv = document.getElementById('quick-roll-result');
     
@@ -149,6 +152,14 @@ function showQuickRollModal(skillName, roll, skillValue, result, rolls = [], typ
             </div>
         `;
     }
+    if (rolls.length > 0) {
+    html += `
+        <div class="result-details">
+            🎲 Dados Rolados (${type === 'advantage' ? 'Vantagem' : 'Desvantagem'}):
+            ${rolls.join(', ')}
+        </div>
+    `;
+    }
 
     resultDiv.innerHTML = html;
     modal.classList.add('show');
@@ -169,6 +180,8 @@ function populateSkillSelects() {
     ];
 
     selects.forEach(select => {
+        if (!select) return; // ✅ evita erro se não existir
+
         skills.forEach(skill => {
             const option = document.createElement('option');
             option.value = skill;
@@ -177,6 +190,7 @@ function populateSkillSelects() {
         });
     });
 }
+
 
 // Anexar event listeners
 function attachEventListeners() {
@@ -230,11 +244,11 @@ function rollDice(sides) {
 }
 
 function getCritThreshold(skill) {
-        if (skill >= 80) return 5;      // perícia 80+ -> crítico se roll <= 5
-        if (skill >= 65) return 4;      // 65-79 -> crítico se roll <= 4
-        if (skill >= 50) return 3;      // 50-64 -> crítico se roll <= 3
-        if (skill >= 35) return 2;      // 35-49 -> crítico se roll <= 2
-        if (skill >= 11) return 1;      // 11-34 -> crítico se roll <= 1
+        if (skill >= 90) return 5;      // perícia 80+ -> crítico se roll <= 5
+        if (skill >= 76) return 4;      // 65-79 -> crítico se roll <= 4
+        if (skill >= 60) return 3;      // 50-64 -> crítico se roll <= 3
+        if (skill >= 36) return 2;      // 35-49 -> crítico se roll <= 2
+        if (skill >= 10) return 1;      // 11-34 -> crítico se roll <= 1
         return 0;                       // 0-10  -> nunca crítico
     }
 
@@ -463,6 +477,152 @@ function saveCharacter() {
     alert('✅ Personagem salvo com sucesso!');
 }
 
+const attacks = [];
+
+const modal = document.getElementById("attack-modal");
+const addBtn = document.getElementById("add-attack-btn");
+const closeBtn = document.getElementById("close-attack-modal");
+const saveBtn = document.getElementById("save-attack");
+const list = document.getElementById("attack-list");
+
+addBtn.onclick = () => modal.classList.add("show");
+closeBtn.onclick = () => modal.classList.remove("show");
+
+saveBtn.onclick = () => {
+    const name = document.getElementById("attack-name").value;
+    const desc = document.getElementById("attack-desc").value;
+    const flat = Number(document.getElementById("attack-flat").value);
+
+    if (!name || tempDice.length === 0) {
+        alert("Adicione nome e pelo menos um dado");
+        return;
+    }
+
+    attacks.push({
+        name,
+        desc,
+        flat,
+        dice: [...tempDice]
+    });
+
+    tempDice = [];
+    renderDice();
+    modal.classList.remove("show");
+    renderAttacks();
+};
+
+
+let tempDice = [];
+
+const diceList = document.getElementById("dice-list");
+const addDiceBtn = document.getElementById("add-dice");
+
+addDiceBtn.onclick = () => {
+    const qty = Number(document.getElementById("dice-qty").value);
+    const sides = Number(document.getElementById("dice-sides").value);
+
+    if (!qty || !sides) {
+        alert("Preencha quantidade e lados");
+        return;
+    }
+
+    if (qty > 99 || sides > 9999) {
+        alert("Limite: 99 dados e D9999");
+        return;
+    }
+
+    tempDice.push({ qty, sides });
+    renderDice();
+};
+
+function renderDice() {
+    diceList.innerHTML = "";
+
+    tempDice.forEach((d, i) => {
+        const div = document.createElement("div");
+        div.className = "skill-item";
+
+        div.innerHTML = `
+            <span>${d.qty}d${d.sides}</span>
+            <button class="btn btn-secondary" onclick="removeDice(${i})">✖</button>
+        `;
+
+        diceList.appendChild(div);
+    });
+}
+
+function removeDice(index) {
+    tempDice.splice(index, 1);
+    renderDice();
+}
+
+
+function renderAttacks() {
+    list.innerHTML = "";
+
+    attacks.forEach((atk, index) => {
+        const diceLabel = atk.dice
+            .map(d => `${d.qty}d${d.sides}`)
+            .join(" + ");
+
+        const div = document.createElement("div");
+        div.className = "card";
+
+        div.innerHTML = `
+            <h4>${atk.name}</h4>
+            <p>${atk.desc || ""}</p>
+            <p><strong>${diceLabel} + ${atk.flat}</strong></p>
+            <button class="btn btn-secondary" onclick="rollAttack(${index})">🎲 Rolar</button>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+
+function rollAttack(index) {
+    const atk = attacks[index];
+
+    let total = atk.flat;
+    let diceHTML = "";
+
+    atk.dice.forEach(d => {
+        for (let i = 0; i < d.qty; i++) {
+            const roll = Math.floor(Math.random() * d.sides) + 1;
+            total += roll;
+            diceHTML += `
+                <div class="attack-die">
+                    D${d.sides}<br>
+                    ${roll}
+                </div>
+            `;
+        }
+    });
+
+    const content = `
+        <div class="attack-title">${atk.name}</div>
+
+        <div class="attack-dice">
+            ${diceHTML}
+        </div>
+
+        <div class="attack-flat">
+            Dano Garantido: +${atk.flat}
+        </div>
+
+        <div class="attack-total">
+            TOTAL: ${total}
+        </div>
+    `;
+
+    document.getElementById("attack-modal-content").innerHTML = content;
+    document.getElementById("attack-modal").classList.add("show");
+}
+
+
+
+
+
 // Carregar personagem do localStorage
 function loadCharacter() {
     const saved = localStorage.getItem('d100_character');
@@ -548,3 +708,30 @@ function clearCharacter() {
     
     alert('✅ Ficha limpa com sucesso!');
 }
+const charTabs = document.querySelectorAll(".char-tab");
+const charContents = document.querySelectorAll(".char-tab-content");
+
+charTabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+        charTabs.forEach(t => t.classList.remove("active"));
+        charContents.forEach(c => c.classList.remove("active"));
+
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.tab).classList.add("active");
+    });
+});
+
+function closeAttackModal() {
+    document.getElementById("attack-modal").classList.remove("show");
+}
+
+document.getElementById("attack-modal").addEventListener("click", e => {
+    if (e.target.id === "attack-modal") {
+        closeAttackModal();
+    }
+});
+document.addEventListener("click", (e) => {
+    if (e.target.classList.contains("roll-damage")) {
+        alert("CLIQUE FUNCIONOU");
+    }
+});
