@@ -16,7 +16,6 @@
                 <button class="nav-btn" data-page="home">Início</button>
                 <button class="nav-btn" data-page="character">Criar Personagem</button>
                 <button class="nav-btn" data-page="rules">Regras</button>
-                <button class="nav-btn" data-page="rolls">Rolagens</button>
                 <button class="nav-btn" data-page="weapons">Armas e Magias</button>
                 <button class="nav-btn" data-page="skills">Perícias</button>
             </nav>
@@ -109,9 +108,32 @@
                     <div class="skills-grid" id="skills-container">
                         <!-- Será preenchido via JavaScript -->
                     </div>
+                    <div class="card">
+                    <h3>⚖️ Vantagem / Desvantagem</h3>
+
+                    <div class="form-group">
+                        <label>Tipo:</label>
+                        <select id="auto-advantage-type">
+                            <option value="normal">Normal</option>
+                            <option value="advantage">Vantagem</option>
+                            <option value="disadvantage">Desvantagem</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Quantidade de Dados:</label>
+                        <input type="number" id="auto-advantage-count" value="2" min="2" max="10">
+                    </div>
+
+                    <p class="hint">
+                        Essa configuração será usada automaticamente ao rolar 🎲
+                    </p>
+                </div>
+
                 </div>
 
                 <div class="button-group">
+                    
                     <button class="btn btn-primary" id="save-character">💾 Salvar Personagem</button>
                     <button class="btn btn-secondary" id="load-character">📂 Carregar Personagem</button>
                     <button class="btn btn-secondary" id="clear-character">🗑️ Limpar Ficha</button>
@@ -189,46 +211,7 @@
             </div>
         </section>
 
-        <!-- Rolagens -->
-        <section id="rolls" class="page">
-            <h2 class="page-title">Sistema de Rolagens</h2>
-
-            <div class="card">
-                <h3>🎲 Teste de Perícia</h3>
-                <p>Selecione uma perícia e role para testar!</p>
-                <div class="form-group">
-                    <label>Selecione a Perícia:</label>
-                    <select id="skill-select">
-                        <option value="">-- Escolha uma perícia --</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" id="roll-skill">🎲 Rolar Teste</button>
-                <div id="skill-result" class="result-box"></div>
-            </div>
-
-            <div class="card">
-                <h3>⚖️ Vantagem e Desvantagem</h3>
-                <div class="form-group">
-                    <label>Tipo de Rolagem:</label>
-                    <select id="advantage-type">
-                        <option value="advantage">Vantagem (pega o menor)</option>
-                        <option value="disadvantage">Desvantagem (pega o maior)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Quantidade de Dados:</label>
-                    <input type="number" id="advantage-count" value="2" min="2" max="10">
-                </div>
-                <div class="form-group">
-                    <label>Perícia para comparar:</label>
-                    <select id="advantage-skill">
-                        <option value="">-- Escolha uma perícia --</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" id="roll-advantage">🎲 Rolar com Vantagem/Desvantagem</button>
-                <div id="advantage-result" class="result-box"></div>
-            </div>
-        </section>
+       
 
         <!-- Armas e Magias -->
         <section id="weapons" class="page">

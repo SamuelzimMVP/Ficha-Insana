@@ -91,13 +91,31 @@ function renderSkills() {
 // Rolagem rápida de perícia (botão ao lado do atributo)
 function quickRollSkill(skillName) {
     const skillValue = character.skills[skillName];
-    const roll = rollDice(100);
+
+    const type = document.getElementById('auto-advantage-type')?.value || 'normal';
+    const count = parseInt(document.getElementById('auto-advantage-count')?.value) || 1;
+
+    let roll;
+    let rolls = [];
+
+    if (type === 'normal' || count < 2) {
+        roll = rollDice(100);
+    } else {
+        for (let i = 0; i < count; i++) {
+            rolls.push(rollDice(100));
+        }
+        roll = type === 'advantage'
+            ? Math.min(...rolls)
+            : Math.max(...rolls);
+    }
+
     const result = evaluateSkillRoll(roll, skillValue);
-    
-    showQuickRollModal(skillName, roll, skillValue, result);
+
+    showQuickRollModal(skillName, roll, skillValue, result, rolls, type);
 }
 
-function showQuickRollModal(skillName, roll, skillValue, result) {
+
+function showQuickRollModal(skillName, roll, skillValue, result, rolls = [], type = 'normal') {
     const modal = document.getElementById('quick-roll-modal');
     const resultDiv = document.getElementById('quick-roll-result');
     
@@ -122,7 +140,16 @@ function showQuickRollModal(skillName, roll, skillValue, result) {
         }
     }
 
-    
+    let rollsHtml = '';
+    if (rolls.length > 0) {
+        rollsHtml = `
+            <div class="result-details">
+                🎲 Dados Rolados (${type === 'advantage' ? 'Vantagem' : 'Desvantagem'}):
+                ${rolls.join(', ')}
+            </div>
+        `;
+    }
+
     resultDiv.innerHTML = html;
     modal.classList.add('show');
 }
