@@ -506,7 +506,7 @@ main {
     width: 90%;
     position: relative;
     animation: slideIn 0.5s ease;
-    box-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
+    box-shadow: 0 0 30px rgba(123, 250, 26, 0.5);
 }
 
 .close-modal {

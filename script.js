@@ -112,7 +112,10 @@ function showQuickRollModal(skillName, roll, skillValue, result) {
     `;
     
     if (result.success) {
-        if (result.extreme) {
+        if (result.crit) {
+            html +='<div class="result-success">💥 SUCESSO CRITICO!!</div>';
+        }
+        else if (result.extreme) {
             html += '<div class="result-success">💎 SUCESSO EXTREMO!</div>';
         } else if (result.good) {
             html += '<div class="result-success">⭐ SUCESSO BOM!</div>';
@@ -199,20 +202,34 @@ function rollDice(sides) {
     return Math.floor(Math.random() * sides) + 1;
 }
 
+function getCritThreshold(skill) {
+        if (skill >= 80) return 5;      // perícia 80+ -> crítico se roll <= 5
+        if (skill >= 65) return 4;      // 65-79 -> crítico se roll <= 4
+        if (skill >= 50) return 3;      // 50-64 -> crítico se roll <= 3
+        if (skill >= 35) return 2;      // 35-49 -> crítico se roll <= 2
+        if (skill >= 11) return 1;      // 11-34 -> crítico se roll <= 1
+        return 0;                       // 0-10  -> nunca crítico
+    }
+
 // Avaliar resultado de perícia
 function evaluateSkillRoll(roll, skillValue) {
     const extreme = Math.floor(skillValue / 3);
     const good = Math.floor((skillValue * 2) / 3);
-    
-    const result = {
-        success: roll <= skillValue,
-        good: roll <= good,
-        extreme: roll <= extreme,
-       
-    };
-    
-    return result;
+
+    const critThreshold = getCritThreshold(skillValue);
+    const isCrit = roll <= critThreshold && critThreshold > 0;
+
+    return {
+    success: roll <= skillValue,
+    good: roll <= good,
+    extreme: roll <= extreme,
+    crit: roll <= critThreshold,
+    critThreshold: critThreshold // ✅ ADICIONE ISSO
+};
+
 }
+
+
 
 
 
@@ -234,36 +251,51 @@ function rollSkillTest() {
 }
 
 function displaySkillResult(skillName, roll, skillValue, result) {
+
+    // 🚨 Proteção contra valores inválidos
+    if (!result || typeof result !== "object") {
+        console.error("displaySkillResult recebeu 'result' inválido:", result);
+        return;
+    }
+
     const resultBox = document.getElementById('skill-result');
-    
+
+    let extremeValue = Math.floor(skillValue / 3);
+    let goodValue = Math.floor((skillValue * 2) / 3);
+
     let successClass = result.success ? 'result-success' : 'result-failure';
     let successText = result.success ? '✅ SUCESSO' : '❌ FALHA';
-    
+
     let html = `
         <div class="result-title">Resultado do Teste de ${skillName}</div>
         <div class="result-details">🎲 Dado: <strong>${roll}</strong></div>
         <div class="result-details">🎯 Perícia: <strong>${skillValue}</strong></div>
-        <div class="result-details">💎 Extremo: <strong>${Math.floor(skillValue / 3)}</strong></div>
-        <div class="result-details">⭐ Bom: <strong>${Math.floor((skillValue * 2) / 3)}</strong></div>
+        <div class="result-details">💎 Extremo: <strong>${extremeValue}</strong></div>
+        <div class="result-details">⭐ Bom: <strong>${goodValue}</strong></div>
         <div class="${successClass}">${successText}</div>
     `;
-    
+
     if (result.success) {
-        if (result.extreme) {
+        if (result.crit) {
+            html +='<div class="result-success">💥 SUCESSO CRITICO!!</div>';
+        }
+        else if (result.extreme) {
             html += '<div class="result-success">💎 SUCESSO EXTREMO!</div>';
-        } else if (result.good) {
+        }
+        else if (result.good) {
             html += '<div class="result-success">⭐ SUCESSO BOM!</div>';
-            
-        } else {
+        }
+        else {
             html += '<div class="result-success">✅ SUCESSO NORMAL</div>';
         }
     }
-    
-    
-    
+
+   
+
     resultBox.innerHTML = html;
     resultBox.classList.add('show');
 }
+
 
 // Rolagem com vantagem/desvantagem
 function rollAdvantage() {
@@ -294,6 +326,7 @@ function rollAdvantage() {
     displayAdvantageResult(skillName, rolls, finalRoll, skillValue, result, type);
 }
 
+
 function displayAdvantageResult(skillName, rolls, finalRoll, skillValue, result, type) {
     const resultBox = document.getElementById('advantage-result');
     const typeText = type === 'advantage' ? 'Vantagem (menor)' : 'Desvantagem (maior)';
@@ -304,6 +337,10 @@ function displayAdvantageResult(skillName, rolls, finalRoll, skillValue, result,
     let html = `
         <div class="result-title">Rolagem com ${typeText}</div>
         <div class="result-details">🎯 Perícia de ${skillName}: <strong>${skillValue}</strong></div>
+        <div class="result-details">💎 Extremo: <strong>${Math.floor(skillValue / 3)}</strong></div>
+        <div class="result-details">⭐ Bom: <strong>${Math.floor((skillValue * 2) / 3)}</strong></div>
+        <div class="result-details">🔥 Crítico: ≤ <strong>${result.critThreshold}</strong></div>
+        
         <div class="result-details">🎲 Dados Rolados:</div>
         <div class="dice-results">
     `;
@@ -320,7 +357,10 @@ function displayAdvantageResult(skillName, rolls, finalRoll, skillValue, result,
     `;
     
     if (result.success) {
-        if (result.extreme) {
+        if (result.crit) {
+            html += '<div class="result-success">💥 SUCESSO CRITICO!</div>';
+        }
+        else if (result.extreme) {
             html += '<div class="result-success">💎 SUCESSO EXTREMO!</div>';
         } else if (result.good) {
             html += '<div class="result-success">⭐ SUCESSO BOM!</div>';
@@ -328,12 +368,14 @@ function displayAdvantageResult(skillName, rolls, finalRoll, skillValue, result,
             html += '<div class="result-success">✅ SUCESSO NORMAL</div>';
         }
     }
-    
+
+    // EXIBIR CRÍTICO
     
     
     resultBox.innerHTML = html;
     resultBox.classList.add('show');
 }
+
 
 // Rolagem livre de dados
 function rollFreeDice() {
