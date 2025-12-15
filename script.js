@@ -4,16 +4,16 @@ const skills = [
     'Inteligência', 'Psicologia', 'Vigor', 'Percepção',
     'Intimidar', 'Poder', 'Sorte', 'Sentido',
     'Medicina', 'Primeiro Socorros', 'Pontaria', 'Furtividade',
-    'Lábia', 'Carisma', 'Correr'
+    'Lábia', 'Carisma', 'Correr', 'Força'
 ];
 
 // Estado do personagem
 let character = {
     name: '',
-    hpCurrent: 100,
-    hpMax: 100,
-    sanityCurrent: 100,
-    sanityMax: 100,
+    hpCurrent: 50,
+    hpMax: 50,
+    sanityCurrent: 40,
+    sanityMax: 40,
     manaBlocks: 0,
     skills: {}
 };
