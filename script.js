@@ -1,6 +1,8 @@
 console.log("SCRIPT CARREGOU");
 
-// Lista de perícias do sistema
+// ==========================
+// DADOS DO SISTEMA
+// ==========================
 const skills = [
     'Destreza', 'Agilidade', 'Luta', 'Contra-ataque',
     'Inteligência', 'Psicologia', 'Vigor', 'Percepção',
@@ -9,250 +11,116 @@ const skills = [
     'Lábia', 'Carisma', 'Correr', 'Força'
 ];
 
-// Estado do personagem
 let character = {
     name: '',
-    hpCurrent: 50,
-    hpMax: 50,
-    sanityCurrent: 40,
-    sanityMax: 40,
+    hpCurrent: 100,
+    hpMax: 100,
+    sanityCurrent: 100,
+    sanityMax: 100,
     manaBlocks: 0,
     skills: {}
 };
 
-// Inicializar perícias com valor 0
-skills.forEach(skill => {s
-    character.skills[skill] = 40;
-});
+skills.forEach(s => character.skills[s] = 40);
 
-// Navegação entre páginas
+// ==========================
+// INICIALIZAÇÃO
+// ==========================
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
+    initCharacterTabs();
     renderSkills();
-    populateSkillSelects();
-    attachEventListeners();
+    initCharacterInputs();
+    initAttacks();
     loadCharacterFromStorage();
 });
 
+// ==========================
+// NAVEGAÇÃO PRINCIPAL
+// ==========================
 function initNavigation() {
     const navButtons = document.querySelectorAll('.nav-btn');
     const pages = document.querySelectorAll('.page');
 
     navButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            const targetPage = btn.dataset.page;
-            
-            // Remover classe active de todos
             navButtons.forEach(b => b.classList.remove('active'));
             pages.forEach(p => p.classList.remove('active'));
-            
-            // Adicionar classe active
+
             btn.classList.add('active');
-            document.getElementById(targetPage).classList.add('active');
+            document.getElementById(btn.dataset.page)?.classList.add('active');
         });
     });
 }
 
-// Renderizar perícias na ficha
+// ==========================
+// ABAS DO PERSONAGEM
+// ==========================
+function initCharacterTabs() {
+    const tabs = document.querySelectorAll('.char-tab');
+    const contents = document.querySelectorAll('.char-tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab)?.classList.add('active');
+        });
+    });
+}
+
+// ==========================
+// PERÍCIAS
+// ==========================
 function renderSkills() {
     const container = document.getElementById('skills-container');
+    if (!container) return;
+
     container.innerHTML = '';
 
     skills.forEach(skill => {
-        const skillDiv = document.createElement('div');
-        skillDiv.className = 'skill-item';
-        skillDiv.innerHTML = `
-            <label>${skill}:</label>
-            <input type="number" 
-                   data-skill="${skill}" 
-                   value="${character.skills[skill]}" 
-                   min="0" 
-                   max="100">
-            <button class="dice-btn" data-skill="${skill}" title="Rolar teste de ${skill}">🎲</button>
+        const div = document.createElement('div');
+        div.className = 'skill-item';
+
+        div.innerHTML = `
+            <label>${skill}</label>
+            <input type="number" min="0" max="100" value="${character.skills[skill]}" data-skill="${skill}">
+            <button class="dice-btn" data-skill="${skill}">🎲</button>
         `;
-        container.appendChild(skillDiv);
+
+        container.appendChild(div);
     });
 
-    // Adicionar eventos aos inputs
     container.querySelectorAll('input').forEach(input => {
-        input.addEventListener('change', (e) => {
-            const skill = e.target.dataset.skill;
-            character.skills[skill] = parseInt(e.target.value) || 0;
+        input.addEventListener('change', e => {
+            character.skills[e.target.dataset.skill] = Number(e.target.value) || 0;
         });
     });
 
-    // Adicionar eventos aos botões de dado
     container.querySelectorAll('.dice-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const skill = e.target.dataset.skill;
-            quickRollSkill(skill);
+        btn.addEventListener('click', () => {
+            quickRollSkill(btn.dataset.skill);
         });
     });
 }
 
-// Rolagem rápida de perícia (botão ao lado do atributo)
-function quickRollSkill(skillName) {
-    const skillValue = character.skills[skillName];
-    const mod = parseInt(document.getElementById('advantage-mod')?.value) || 0;
-
-    let roll;
-    let rolls = [];
-
-    if (Math.abs(mod) <= 1) {
-        roll = rollDice(100);
-    } else {
-        for (let i = 0; i < Math.abs(mod); i++) {
-            rolls.push(rollDice(100));
-        }
-        roll = mod > 0
-            ? Math.min(...rolls)
-            : Math.max(...rolls);
-    }
-
-    const result = evaluateSkillRoll(roll, skillValue);
-
-    showQuickRollModal(skillName, roll, skillValue, result, rolls, mod);
-}
-
-
-
-
-function showQuickRollModal(skillName, roll, skillValue, result, rolls = [], type = 'normal') {
-
-    const modal = document.getElementById('quick-roll-modal');
-    const resultDiv = document.getElementById('quick-roll-result');
-    
-    let successClass = result.success ? 'result-success' : 'result-failure';
-    let successText = result.success ? '✅ SUCESSO' : '❌ FALHA';
-    
-    let html = `
-        <div class="result-title">Teste de ${skillName}</div>
-        <div class="result-details">🎲 Resultado do Dado: <strong>${roll}</strong></div>
-        <div class="result-details">🎯 Valor da Perícia: <strong>${skillValue}</strong></div>
-        <div class="${successClass}">${successText}</div>
-    `;
-    
-    if (result.success) {
-        if (result.crit) {
-            html +='<div class="result-success">💥 SUCESSO CRITICO!!</div>';
-        }
-        else if (result.extreme) {
-            html += '<div class="result-success">💎 SUCESSO EXTREMO!</div>';
-        } else if (result.good) {
-            html += '<div class="result-success">⭐ SUCESSO BOM!</div>';
-        }
-    }
-
-    let rollsHtml = '';
-    if (rolls.length > 0) {
-        rollsHtml = `
-            <div class="result-details">
-                🎲 Dados Rolados (${type === 'advantage' ? 'Vantagem' : 'Desvantagem'}):
-                ${rolls.join(', ')}
-            </div>
-        `;
-    }
-    if (rolls.length > 0) {
-    html += `
-        <div class="result-details">
-            🎲 Dados Rolados (${type === 'advantage' ? 'Vantagem' : 'Desvantagem'}):
-            ${rolls.join(', ')}
-        </div>
-    `;
-    }
-
-    resultDiv.innerHTML = html;
-    modal.classList.add('show');
-}
-
-// Fechar modal
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('close-modal') || e.target.classList.contains('modal')) {
-        document.getElementById('quick-roll-modal').classList.remove('show');
-    }
-});
-
-// Popular selects de perícias
-function populateSkillSelects() {
-    const selects = [
-        document.getElementById('skill-select'),
-        document.getElementById('advantage-skill')
-    ];
-
-    selects.forEach(select => {
-        if (!select) return; // ✅ evita erro se não existir
-
-        skills.forEach(skill => {
-            const option = document.createElement('option');
-            option.value = skill;
-            option.textContent = skill;
-            select.appendChild(option);
-        });
-    });
-}
-
-
-// Anexar event listeners
-function attachEventListeners() {
-    // Salvar personagem
-    document.getElementById('save-character').addEventListener('click', saveCharacter);
-    
-    // Carregar personagem
-    document.getElementById('load-character').addEventListener('click', loadCharacter);
-    
-    // Limpar ficha
-    document.getElementById('clear-character').addEventListener('click', clearCharacter);
-    
-    // Rolagem de perícia
-    document.getElementById('roll-skill').addEventListener('click', rollSkillTest);
-    
-    // Rolagem com vantagem/desvantagem
-    document.getElementById('roll-advantage').addEventListener('click', rollAdvantage);
-    
-    // Rolagem livre de dados
-    document.getElementById('roll-dice').addEventListener('click', rollFreeDice);
-    
-    // Inputs de status vitais
-    document.getElementById('char-name').addEventListener('change', (e) => {
-        character.name = e.target.value;
-    });
-    
-    document.getElementById('hp-current').addEventListener('change', (e) => {
-        character.hpCurrent = parseInt(e.target.value) || 0;
-    });
-    
-    document.getElementById('hp-max').addEventListener('change', (e) => {
-        character.hpMax = parseInt(e.target.value) || 0;
-    });
-    
-    document.getElementById('sanity-current').addEventListener('change', (e) => {
-        character.sanityCurrent = parseInt(e.target.value) || 0;
-    });
-    
-    document.getElementById('sanity-max').addEventListener('change', (e) => {
-        character.sanityMax = parseInt(e.target.value) || 0;
-    });
-    
-    document.getElementById('mana-blocks').addEventListener('change', (e) => {
-        character.manaBlocks = parseInt(e.target.value) || 0;
-    });
-}
-
-// Função de rolar dado
+// ==========================
+// ROLAGEM DE PERÍCIA
+// ==========================
 function rollDice(sides) {
     return Math.floor(Math.random() * sides) + 1;
 }
-
 function getCritThreshold(skill) {
-        if (skill >= 90) return 5;      // perícia 80+ -> crítico se roll <= 5
-        if (skill >= 76) return 4;      // 65-79 -> crítico se roll <= 4
-        if (skill >= 60) return 3;      // 50-64 -> crítico se roll <= 3
-        if (skill >= 36) return 2;      // 35-49 -> crítico se roll <= 2
-        if (skill >= 10) return 1;      // 11-34 -> crítico se roll <= 1
-        return 0;                       // 0-10  -> nunca crítico
-    }
+    if (skill >= 90) return 5;
+    if (skill >= 76) return 4;
+    if (skill >= 60) return 3;
+    if (skill >= 36) return 2;
+    if (skill >= 10) return 1;
+    return 0;
+}
 
-// Avaliar resultado de perícia
 function evaluateSkillRoll(roll, skillValue) {
     const extreme = Math.floor(skillValue / 3);
     const good = Math.floor((skillValue * 2) / 3);
@@ -261,477 +129,308 @@ function evaluateSkillRoll(roll, skillValue) {
     const isCrit = roll <= critThreshold && critThreshold > 0;
 
     return {
-    success: roll <= skillValue,
-    good: roll <= good,
-    extreme: roll <= extreme,
-    crit: roll <= critThreshold,
-    critThreshold: critThreshold // ✅ ADICIONE ISSO
-};
-
+        success: roll <= skillValue,
+        good: roll <= good,
+        extreme: roll <= extreme,
+        crit: isCrit,
+        critThreshold
+    };
 }
 
+function quickRollSkill(skill) {
+    const skillValue = character.skills[skill];
+    const mod = Number(document.getElementById('advantage-mod')?.value) || 0;
 
+    let rolls = [];
+    let finalRoll;
 
-
-
-// Teste de perícia completo
-function rollSkillTest() {
-    const skillSelect = document.getElementById('skill-select');
-    const skillName = skillSelect.value;
-    
-    if (!skillName) {
-        alert('Selecione uma perícia!');
-        return;
-    }
-    
-    const skillValue = character.skills[skillName];
-    const roll = rollDice(100);
-    const result = evaluateSkillRoll(roll, skillValue);
-    
-    displaySkillResult(skillName, roll, skillValue, result);
-}
-
-function displaySkillResult(skillName, roll, skillValue, result) {
-
-    // 🚨 Proteção contra valores inválidos
-    if (!result || typeof result !== "object") {
-        console.error("displaySkillResult recebeu 'result' inválido:", result);
-        return;
-    }
-
-    const resultBox = document.getElementById('skill-result');
-
-    let extremeValue = Math.floor(skillValue / 3);
-    let goodValue = Math.floor((skillValue * 2) / 3);
-
-    let successClass = result.success ? 'result-success' : 'result-failure';
-    let successText = result.success ? '✅ SUCESSO' : '❌ FALHA';
-
-    let html = `
-        <div class="result-title">Resultado do Teste de ${skillName}</div>
-        <div class="result-details">🎲 Dado: <strong>${roll}</strong></div>
-        <div class="result-details">🎯 Perícia: <strong>${skillValue}</strong></div>
-        <div class="result-details">💎 Extremo: <strong>${extremeValue}</strong></div>
-        <div class="result-details">⭐ Bom: <strong>${goodValue}</strong></div>
-        <div class="${successClass}">${successText}</div>
-    `;
-
-    if (result.success) {
-        if (result.crit) {
-            html +='<div class="result-success">💥 SUCESSO CRITICO!!</div>';
+    if (Math.abs(mod) <= 1) {
+        finalRoll = rollDice(100);
+    } else {
+        for (let i = 0; i < Math.abs(mod); i++) {
+            rolls.push(rollDice(100));
         }
-        else if (result.extreme) {
-            html += '<div class="result-success">💎 SUCESSO EXTREMO!</div>';
-        }
-        else if (result.good) {
-            html += '<div class="result-success">⭐ SUCESSO BOM!</div>';
-        }
-        else {
-            html += '<div class="result-success">✅ SUCESSO NORMAL</div>';
-        }
+        finalRoll = mod > 0 ? Math.min(...rolls) : Math.max(...rolls);
     }
 
-   
-
-    resultBox.innerHTML = html;
-    resultBox.classList.add('show');
-}
-
-
-// Rolagem com vantagem/desvantagem
-function rollAdvantage() {
-    const type = document.getElementById('advantage-type').value;
-    const count = parseInt(document.getElementById('advantage-count').value);
-    const skillName = document.getElementById('advantage-skill').value;
-    
-    if (!skillName) {
-        alert('Selecione uma perícia!');
-        return;
-    }
-    
-    if (count < 2) {
-        alert('Role pelo menos 2 dados!');
-        return;
-    }
-    
-    const skillValue = character.skills[skillName];
-    const rolls = [];
-    
-    for (let i = 0; i < count; i++) {
-        rolls.push(rollDice(100));
-    }
-    
-    const finalRoll = type === 'advantage' ? Math.min(...rolls) : Math.max(...rolls);
     const result = evaluateSkillRoll(finalRoll, skillValue);
-    
-    displayAdvantageResult(skillName, rolls, finalRoll, skillValue, result, type);
+
+    showQuickRollModal(skill, finalRoll, skillValue, result, rolls, mod);
 }
 
 
-function displayAdvantageResult(skillName, rolls, finalRoll, skillValue, result, type) {
-    const resultBox = document.getElementById('advantage-result');
-    const typeText = type === 'advantage' ? 'Vantagem (menor)' : 'Desvantagem (maior)';
-    
+function showQuickRollModal(skillName, roll, skillValue, result, rolls = [], mod = 0) {
+    const modal = document.getElementById('quick-roll-modal');
+    const resultDiv = document.getElementById('quick-roll-result');
+
+    if (!modal || !resultDiv) return;
+
     let successClass = result.success ? 'result-success' : 'result-failure';
     let successText = result.success ? '✅ SUCESSO' : '❌ FALHA';
-    
+
     let html = `
-        <div class="result-title">Rolagem com ${typeText}</div>
-        <div class="result-details">🎯 Perícia de ${skillName}: <strong>${skillValue}</strong></div>
-        <div class="result-details">💎 Extremo: <strong>${Math.floor(skillValue / 3)}</strong></div>
-        <div class="result-details">⭐ Bom: <strong>${Math.floor((skillValue * 2) / 3)}</strong></div>
-        <div class="result-details">🔥 Crítico: ≤ <strong>${result.critThreshold}</strong></div>
-        
-        <div class="result-details">🎲 Dados Rolados:</div>
-        <div class="dice-results">
-    `;
-    
-    rolls.forEach(roll => {
-        const selectedClass = roll === finalRoll ? 'selected' : '';
-        html += `<div class="dice-value ${selectedClass}">${roll}</div>`;
-    });
-    
-    html += `
-        </div>
-        <div class="result-details">✨ Resultado Final: <strong>${finalRoll}</strong></div>
+        <div class="result-title">Teste de ${skillName}</div>
+        <div class="result-details">🎲 Resultado: <strong>${roll}</strong></div>
+        <div class="result-details">🎯 Perícia: <strong>${skillValue}</strong></div>
         <div class="${successClass}">${successText}</div>
     `;
-    
+
     if (result.success) {
         if (result.crit) {
-            html += '<div class="result-success">💥 SUCESSO CRITICO!</div>';
-        }
-        else if (result.extreme) {
-            html += '<div class="result-success">💎 SUCESSO EXTREMO!</div>';
+            html += `<div class="result-success">💥 SUCESSO CRÍTICO!!!</div>`;
+        } else if (result.extreme) {
+            html += `<div class="result-success">💎 SUCESSO EXTREMO!</div>`;
         } else if (result.good) {
-            html += '<div class="result-success">⭐ SUCESSO BOM!</div>';
+            html += `<div class="result-success">⭐ SUCESSO BOM!</div>`;
         } else {
-            html += '<div class="result-success">✅ SUCESSO NORMAL</div>';
+            html += `<div class="result-success">✅ SUCESSO NORMAL</div>`;
         }
     }
 
-    // EXIBIR CRÍTICO
-    
-    
-    resultBox.innerHTML = html;
-    resultBox.classList.add('show');
+    if (rolls.length > 0) {
+        html += `
+            <div class="result-details">
+                🎲 Dados Rolados (${mod > 0 ? 'Vantagem' : 'Desvantagem'}):
+                ${rolls.join(', ')}
+            </div>
+        `;
+    }
+
+    resultDiv.innerHTML = html;
+    modal.classList.add('show');
 }
 
 
-// Rolagem livre de dados
-function rollFreeDice() {
-    const diceType = parseInt(document.getElementById('dice-type').value);
-    const diceCount = parseInt(document.getElementById('dice-count').value);
-    
-    if (diceCount < 1) {
-        alert('Role pelo menos 1 dado!');
-        return;
+// Fechar modal
+document.addEventListener('click', e => {
+    if (e.target.classList.contains('modal') || e.target.classList.contains('close-modal')) {
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
     }
-    
-    const rolls = [];
-    let total = 0;
-    
-    for (let i = 0; i < diceCount; i++) {
-        const roll = rollDice(diceType);
-        rolls.push(roll);
-        total += roll;
-    }
-    
-    displayDiceResult(diceType, diceCount, rolls, total);
-}
+});
 
-function displayDiceResult(diceType, diceCount, rolls, total) {
-    const resultBox = document.getElementById('dice-result');
-    
-    let html = `
-        <div class="result-title">Rolagem de ${diceCount}D${diceType}</div>
-        <div class="result-details">🎲 Resultados Individuais:</div>
-        <div class="dice-results">
-    `;
-    
-    rolls.forEach(roll => {
-        html += `<div class="dice-value">${roll}</div>`;
+// ==========================
+// INPUTS DO PERSONAGEM
+// ==========================
+function initCharacterInputs() {
+    const map = {
+        'char-name': 'name',
+        'hp-current': 'hpCurrent',
+        'hp-max': 'hpMax',
+        'sanity-current': 'sanityCurrent',
+        'sanity-max': 'sanityMax',
+        'mana-blocks': 'manaBlocks'
+    };
+
+    Object.keys(map).forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('change', e => {
+            character[map[id]] = e.target.type === 'number'
+                ? Number(e.target.value)
+                : e.target.value;
+        });
     });
-    
-    html += `
-        </div>
-        <div class="result-success">📊 Total: ${total}</div>
-    `;
-    
-    resultBox.innerHTML = html;
-    resultBox.classList.add('show');
 }
 
-// Salvar personagem no localStorage
-function saveCharacter() {
-    // Atualizar character com valores atuais dos inputs
-    character.name = document.getElementById('char-name').value;
-    character.hpCurrent = parseInt(document.getElementById('hp-current').value) || 0;
-    character.hpMax = parseInt(document.getElementById('hp-max').value) || 0;
-    character.sanityCurrent = parseInt(document.getElementById('sanity-current').value) || 0;
-    character.sanityMax = parseInt(document.getElementById('sanity-max').value) || 0;
-    character.manaBlocks = parseInt(document.getElementById('mana-blocks').value) || 0;
-    
-    // Salvar no localStorage
-    localStorage.setItem('d100_character', JSON.stringify(character));
-    alert('✅ Personagem salvo com sucesso!');
-}
-
-const attacks = [];
-
-const modal = document.getElementById("attack-modal");
-const addBtn = document.getElementById("add-attack-btn");
-const closeBtn = document.getElementById("close-attack-modal");
-const saveBtn = document.getElementById("save-attack");
-const list = document.getElementById("attack-list");
-
-addBtn.onclick = () => modal.classList.add("show");
-closeBtn.onclick = () => modal.classList.remove("show");
-
-saveBtn.onclick = () => {
-    const name = document.getElementById("attack-name").value;
-    const desc = document.getElementById("attack-desc").value;
-    const flat = Number(document.getElementById("attack-flat").value);
-
-    if (!name || tempDice.length === 0) {
-        alert("Adicione nome e pelo menos um dado");
-        return;
-    }
-
-    attacks.push({
-        name,
-        desc,
-        flat,
-        dice: [...tempDice]
-    });
-
-    tempDice = [];
-    renderDice();
-    modal.classList.remove("show");
-    renderAttacks();
-};
-
-
+// ==========================
+// ATAQUES
+// ==========================
+let attacks = [];
 let tempDice = [];
 
-const diceList = document.getElementById("dice-list");
-const addDiceBtn = document.getElementById("add-dice");
+function initAttacks() {
+    const addBtn = document.getElementById('add-attack-btn');
+    const modal = document.getElementById('attack-modal');
+    const closeBtn = document.getElementById('close-attack-modal');
+    const saveBtn = document.getElementById('save-attack');
+    const addDiceBtn = document.getElementById('add-dice');
 
-addDiceBtn.onclick = () => {
-    const qty = Number(document.getElementById("dice-qty").value);
-    const sides = Number(document.getElementById("dice-sides").value);
+    if (!addBtn || !modal) return;
 
-    if (!qty || !sides) {
-        alert("Preencha quantidade e lados");
-        return;
-    }
+    addBtn.onclick = () => modal.classList.add('show');
+    closeBtn.onclick = () => modal.classList.remove('show');
 
-    if (qty > 99 || sides > 9999) {
-        alert("Limite: 99 dados e D9999");
-        return;
-    }
+    addDiceBtn.onclick = addTempDice;
+    saveBtn.onclick = saveAttack;
+}
+
+function addTempDice() {
+    const qty = Number(document.getElementById('dice-qty').value);
+    const sides = Number(document.getElementById('dice-sides').value);
+
+    if (!qty || !sides) return alert('Preencha quantidade e lados');
 
     tempDice.push({ qty, sides });
-    renderDice();
-};
+    renderTempDice();
+}
 
-function renderDice() {
-    diceList.innerHTML = "";
+function showDamageResult(name, rolls, total, guaranteed) {
+    const grouped = {};
+
+    rolls.forEach(r => {
+        if (!grouped[r.sides]) grouped[r.sides] = [];
+        grouped[r.sides].push(r.value);
+    });
+    let summaryHTML = "";
+    let detailsHTML = "";
+
+    for (const sides in grouped) {
+        summaryHTML += `<div>• ${grouped[sides].length}d${sides}</div>`;
+        detailsHTML += `
+            <div class="damage-details">
+                <strong>D${sides}</strong>: ${grouped[sides].join(", ")}
+            </div>
+        `;
+    }
+    const modal = document.getElementById("damage-result-modal");
+    const content = document.getElementById("damage-result-content");
+
+    let diceHTML = "";
+
+    rolls.forEach(r => {
+        diceHTML += `
+            <div class="attack-die">
+                D${r.sides}<br>${r.value}
+            </div>
+        `;
+    });
+
+    content.innerHTML = `
+    <div class="attack-title">${name}</div>
+
+    <div class="damage-summary">
+        <h4>🎲 Dados</h4>
+        ${summaryHTML}
+    </div>
+
+    <div class="attack-flat">
+        💠 Dano Garantido: +${guaranteed}
+    </div>
+
+    <div class="attack-total">
+        💥 TOTAL: ${total}
+    </div>
+
+    <button class="btn btn-secondary" id="toggle-details">
+        Ver detalhes dos dados
+    </button>
+
+    <div id="damage-details-box" style="display:none;">
+        ${detailsHTML}
+    </div>
+    `;
+    document.getElementById("toggle-details").onclick = () => {
+        const box = document.getElementById("damage-details-box");
+        box.style.display = box.style.display === "none" ? "block" : "none";
+    };
+
+
+    modal.classList.add("show");
+}
+
+
+
+function renderTempDice() {
+    const list = document.getElementById('dice-list');
+    list.innerHTML = '';
 
     tempDice.forEach((d, i) => {
-        const div = document.createElement("div");
-        div.className = "skill-item";
-
+        const div = document.createElement('div');
+        div.className = 'skill-item';
         div.innerHTML = `
-            <span>${d.qty}d${d.sides}</span>
-            <button class="btn btn-secondary" onclick="removeDice(${i})">✖</button>
+            ${d.qty}d${d.sides}
+            <button onclick="removeTempDice(${i})">✖</button>
         `;
-
-        diceList.appendChild(div);
+        list.appendChild(div);
     });
 }
 
-function removeDice(index) {
-    tempDice.splice(index, 1);
-    renderDice();
+function removeTempDice(i) {
+    tempDice.splice(i, 1);
+    renderTempDice();
 }
 
+function saveAttack() {
+    const name = document.getElementById('attack-name').value;
+    const desc = document.getElementById('attack-desc').value;
+    const flat = Number(document.getElementById('attack-flat').value);
+
+    if (!name || tempDice.length === 0) {
+        return alert('Nome e dados são obrigatórios');
+    }
+
+    attacks.push({ name, desc, flat, dice: [...tempDice] });
+    tempDice = [];
+
+    document.getElementById('attack-modal').classList.remove('show');
+    renderAttacks();
+}
 
 function renderAttacks() {
-    list.innerHTML = "";
+    const list = document.getElementById('attack-list');
+    list.innerHTML = '';
 
-    attacks.forEach((atk, index) => {
-        const diceLabel = atk.dice
-            .map(d => `${d.qty}d${d.sides}`)
-            .join(" + ");
-
-        const div = document.createElement("div");
-        div.className = "card";
+    attacks.forEach((atk, i) => {
+        const diceText = atk.dice.map(d => `${d.qty}d${d.sides}`).join(' + ');
+        const div = document.createElement('div');
+        div.className = 'card';
 
         div.innerHTML = `
             <h4>${atk.name}</h4>
-            <p>${atk.desc || ""}</p>
-            <p><strong>${diceLabel} + ${atk.flat}</strong></p>
-            <button class="btn btn-secondary" onclick="rollAttack(${index})">🎲 Rolar</button>
+            <p>${atk.desc || ''}</p>
+            <p><strong>${diceText} + ${atk.flat}</strong></p>
+            <button onclick="rollAttack(${i})">🎲 Rolar</button>
         `;
 
         list.appendChild(div);
     });
 }
 
-
 function rollAttack(index) {
-    const atk = attacks[index];
+    const attack = attacks[index];
 
-    let total = atk.flat;
-    let diceHTML = "";
+    let totalDamage = attack.flat;
+    let rollsArray = [];
 
-    atk.dice.forEach(d => {
+    attack.dice.forEach(d => {
         for (let i = 0; i < d.qty; i++) {
             const roll = Math.floor(Math.random() * d.sides) + 1;
-            total += roll;
-            diceHTML += `
-                <div class="attack-die">
-                    D${d.sides}<br>
-                    ${roll}
-                </div>
-            `;
+            totalDamage += roll;
+
+            rollsArray.push({
+                sides: d.sides,
+                value: roll
+            });
         }
     });
 
-    const content = `
-        <div class="attack-title">${atk.name}</div>
-
-        <div class="attack-dice">
-            ${diceHTML}
-        </div>
-
-        <div class="attack-flat">
-            Dano Garantido: +${atk.flat}
-        </div>
-
-        <div class="attack-total">
-            TOTAL: ${total}
-        </div>
-    `;
-
-    document.getElementById("attack-modal-content").innerHTML = content;
-    document.getElementById("attack-modal").classList.add("show");
+    showDamageResult(
+        attack.name,
+        rollsArray,
+        totalDamage,
+        attack.flat
+    );
 }
 
 
-
-
-
-// Carregar personagem do localStorage
-function loadCharacter() {
-    const saved = localStorage.getItem('d100_character');
-    
-    if (!saved) {
-        alert('❌ Nenhum personagem salvo encontrado!');
-        return;
-    }
-    
-    character = JSON.parse(saved);
-    
-    // Atualizar interface
-    document.getElementById('char-name').value = character.name || '';
-    document.getElementById('hp-current').value = character.hpCurrent;
-    document.getElementById('hp-max').value = character.hpMax;
-    document.getElementById('sanity-current').value = character.sanityCurrent;
-    document.getElementById('sanity-max').value = character.sanityMax;
-    document.getElementById('mana-blocks').value = character.manaBlocks;
-    
-    // Atualizar perícias
-    document.querySelectorAll('#skills-container input[data-skill]').forEach(input => {
-        const skill = input.dataset.skill;
-        input.value = character.skills[skill] || 0;
-    });
-    
-    alert('✅ Personagem carregado com sucesso!');
+// ==========================
+// SALVAR / CARREGAR
+// ==========================
+function saveCharacter() {
+    localStorage.setItem('d100_character', JSON.stringify(character));
+    alert('Personagem salvo!');
 }
 
-// Carregar personagem automaticamente ao iniciar
 function loadCharacterFromStorage() {
     const saved = localStorage.getItem('d100_character');
-    
-    if (saved) {
-        character = JSON.parse(saved);
-        
-        // Atualizar interface
-        document.getElementById('char-name').value = character.name || '';
-        document.getElementById('hp-current').value = character.hpCurrent;
-        document.getElementById('hp-max').value = character.hpMax;
-        document.getElementById('sanity-current').value = character.sanityCurrent;
-        document.getElementById('sanity-max').value = character.sanityMax;
-        document.getElementById('mana-blocks').value = character.manaBlocks;
-        
-        // Re-renderizar perícias com valores salvos
-        renderSkills();
-    }
-}
+    if (!saved) return;
 
-// Limpar ficha
-function clearCharacter() {
-    if (!confirm('⚠️ Tem certeza que deseja limpar toda a ficha?')) {
-        return;
-    }
-    
-    // Resetar character
-    character = {
-        name: '',
-        hpCurrent: 100,
-        hpMax: 100,
-        sanityCurrent: 100,
-        sanityMax: 100,
-        manaBlocks: 0,
-        skills: {}
-    };
-    
-    skills.forEach(skill => {
-        character.skills[skill] = 0;
-    });
-    
-    // Limpar localStorage
-    localStorage.removeItem('d100_character');
-    
-    // Atualizar interface
-    document.getElementById('char-name').value = '';
-    document.getElementById('hp-current').value = 100;
-    document.getElementById('hp-max').value = 100;
-    document.getElementById('sanity-current').value = 100;
-    document.getElementById('sanity-max').value = 100;
-    document.getElementById('mana-blocks').value = 0;
-    
-    // Re-renderizar perícias
+    character = JSON.parse(saved);
     renderSkills();
-    
-    alert('✅ Ficha limpa com sucesso!');
 }
-const charTabs = document.querySelectorAll(".char-tab");
-const charContents = document.querySelectorAll(".char-tab-content");
-
-charTabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-        charTabs.forEach(t => t.classList.remove("active"));
-        charContents.forEach(c => c.classList.remove("active"));
-
-        tab.classList.add("active");
-        document.getElementById(tab.dataset.tab).classList.add("active");
-    });
-});
-
-function closeAttackModal() {
-    document.getElementById("attack-modal").classList.remove("show");
+function closeDamageModal() {
+    document.getElementById('damage-modal').classList.remove('show');
 }
 
-document.getElementById("attack-modal").addEventListener("click", e => {
-    if (e.target.id === "attack-modal") {
-        closeAttackModal();
-    }
-});
-document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("roll-damage")) {
-        alert("CLIQUE FUNCIONOU");
-    }
-});
+
