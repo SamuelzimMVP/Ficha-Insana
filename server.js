@@ -8,15 +8,8 @@ const port = 3000;                  // Define a porta
 const { Pool } = pkg; // Obtém o construtor Pool do pacote pg para gerenciar conexões com o banco de dados PostgreSQL
 let pool = null; // Variável para armazenar o pool de conexões com o banco de dados
 
-app.use(cors({
-  origin: [
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-    "https://ficha-fs.vercel.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+app.use(cors());
+
 app.use(express.json());
 // Função para obter uma conexão com o banco de dados
 function conectarBD() {
