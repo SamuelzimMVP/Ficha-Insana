@@ -1,10 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-const pool = require('./db');
+const pool = require('../db'); // Ajuste o caminho se necessário (../db.js)
 
 const app = express();
-app.use(cors()); // Permite requests do frontend
-app.use(express.json()); // Para parsear JSON
+app.use(cors());
+app.use(express.json());
 
 // Endpoint para salvar personagem
 app.post('/character', async (req, res) => {
@@ -79,5 +79,5 @@ app.get('/character/:id', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+// Exporta o app para Vercel (serverless)
+module.exports = app;
