@@ -54,7 +54,7 @@ app.get("/personagens", async (req, res) => {
 app.get("/personagens/:id", async (req, res) => {
   console.log("Rota GET /personagens/:id solicitada");
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
     const db = conectarBD();
 
     const personagem = await db.query(
@@ -164,7 +164,8 @@ app.post("/personagens", async (req, res) => {
 app.put("/personagens/:id", async (req, res) => {
   console.log("Rota PUT /personagens/:id solicitada");
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
+
     const db = conectarBD();
 
     const atual = await db.query(
@@ -208,7 +209,8 @@ app.put("/personagens/:id", async (req, res) => {
 app.delete("/personagens/:id", async (req, res) => {
   console.log("Rota DELETE /personagens/:id solicitada");
   try {
-    const { id } = req.params;
+    const id = Number(req.params.id);
+
     const db = conectarBD();
 
     const resultado = await db.query(
