@@ -195,17 +195,20 @@
         <div id="story-tab" class="char-tab-content">
         <div class="card">
             <h3>📜 História do Personagem</h3>
-            <textarea class="char-textarea" placeholder="História..."></textarea>
+            <textarea id="char-history" class="char-textarea" placeholder="História..."></textarea>
+
+
+
                 </div>
 
                 <div class="card">
                     <h3>🧍 Descrição</h3>
-                    <textarea class="char-textarea" placeholder="Aparência, personalidade..."></textarea>
+                    <textarea id="char-description" class="char-textarea" placeholder="Aparência, personalidade..."></textarea>
                 </div>
 
                 <div class="card">
                     <h3>🎒 Inventário</h3>
-                    <textarea class="char-textarea" placeholder="Itens, armas, objetos..."></textarea>
+                    <textarea id="char-inventory" class="char-textarea" placeholder="Itens, armas, objetos..."></textarea>
                 </div>
             </div>
 
@@ -283,63 +286,11 @@
                 <p><strong>Vantagem:</strong> Quando você tem condições favoráveis, role múltiplos dados e escolha o <strong>menor</strong> resultado.</p>
                 <p><strong>Desvantagem:</strong> Quando você tem condições desfavoráveis, role múltiplos dados e escolha o <strong>maior</strong> resultado.</p>
                 <p class="hint">Exemplo: Com vantagem, você rola 3 dados e tira 15, 67 e 43. Seu resultado final é 15!</p>
-            </div>
+            </div><div id="load-character-list"></div>
+
+
         </section>
 
-
-        <!-- Perícias e Atributos -->
-        <section id="skills" class="page">
-            <h2 class="page-title">Perícias e Atributos</h2>
-
-            <div class="card">
-                <h3>⚔️ Atributos de Combate</h3>
-                <ul class="skill-description">
-                    <li><strong>Destreza:</strong> Capacidade de manipular objetos com precisão</li>
-                    <li><strong>Agilidade:</strong> Velocidade de movimento e reflexos</li>
-                    <li><strong>Luta:</strong> Habilidade em combate corpo a corpo</li>
-                    <li><strong>Contra-ataque:</strong> Capacidade de revidar ataques</li>
-                    <li><strong>Pontaria:</strong> Precisão com armas de longo alcance</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h3>🧠 Atributos Mentais</h3>
-                <ul class="skill-description">
-                    <li><strong>Inteligência:</strong> Capacidade de raciocínio lógico</li>
-                    <li><strong>Psicologia:</strong> Compreensão da mente humana</li>
-                    <li><strong>Percepção:</strong> Capacidade de notar detalhes</li>
-                    <li><strong>Sentido:</strong> Intuição e sexto sentido</li>
-                    <li><strong>Medicina:</strong> Conhecimento médico avançado</li>
-                    <li><strong>Primeiro Socorros:</strong> Cuidados médicos básicos</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h3>💪 Atributos Físicos</h3>
-                <ul class="skill-description">
-                    <li><strong>Vigor:</strong> Resistência física e stamina</li>
-                    <li><strong>Poder:</strong> Força bruta e capacidade de carga</li>
-                    <li><strong>Correr:</strong> Velocidade de deslocamento</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h3>🗣️ Atributos Sociais</h3>
-                <ul class="skill-description">
-                    <li><strong>Intimidar:</strong> Capacidade de assustar e ameaçar</li>
-                    <li><strong>Lábia:</strong> Habilidade de persuasão e mentira</li>
-                    <li><strong>Carisma:</strong> Charme pessoal e liderança</li>
-                </ul>
-            </div>
-
-            <div class="card">
-                <h3>🎭 Atributos Especiais</h3>
-                <ul class="skill-description">
-                    <li><strong>Sorte:</strong> Fortuna e coincidências favoráveis</li>
-                    <li><strong>Furtividade:</strong> Capacidade de se mover sem ser notado</li>
-                </ul>
-            </div>
-        </section>
     </main>
 
     <div id="attack-create-modal" class="modal">
@@ -365,7 +316,7 @@
     </div>
 
     <footer>
-        <p>Crônicas do D100 - Sistema de RPG de Mesa | Menor é Melhor! 🎲</p>
+        <p>Falsa Realidade- Sistema de RPG de Mesa | Menor é Melhor! 🎲</p>
     </footer>
 
     <script src="script.js"></script>
