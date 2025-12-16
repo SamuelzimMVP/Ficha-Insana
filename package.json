@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "API do OMEGA",
   "version": "1.0.0",
-  "description": "api top",
+  "description": "Api que busca e posta personagens em falsa realidade",
   "main": "server.js",
   "scripts": {},
   "keywords": [],
@@ -9,8 +9,6 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0",
-    "pg": "^8.16.3"
+    "express": "^5.2.1"
   }
 }
