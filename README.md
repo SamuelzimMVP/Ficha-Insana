@@ -1,177 +1,111 @@
+# 🔥 Ficha Insana - Backend API
 
-# 🎲 Ficha Insana
+**Falsa Realidade** - API backend para o sistema de RPG de Mesa brasileiro
 
-Sistema web para gerenciamento de fichas de personagens, permitindo criar, editar, visualizar e remover registros de forma organizada.
+## 🎲 Sobre o Projeto
 
-Projeto desenvolvido com foco em prática de desenvolvimento web, organização de API e estruturação de backend.
+Ficha Insana é o backend do sistema de RPG "Falsa Realidade". Uma API RESTful construída com Node.js e Express para gerenciar personagens, usuários e dados do jogo.
 
----
+## ✨ Funcionalidades
 
-## 🚀 Funcionalidades
+- **👤 Autenticação JWT** - Login por nome de usuário com tokens seguros
+- **📝 CRUD de Personagens** - Criar, ler, atualizar e deletar personagens
+- **🔒 Controle de Acesso** - Cada usuário gerencia apenas seus personagens
+- **🗡️ Sistema de Ataques** - Dados personalizados com dano garantido
+- **📊 Perícias** - 20 perícias configuráveis por personagem
 
-✔ Criar nova ficha  
-✔ Listar fichas cadastradas  
-✔ Atualizar dados da ficha  
-✔ Remover ficha  
-✔ Organização em rotas e controllers  
-✔ Estrutura separada entre backend e frontend (se aplicável)
+## 🚀 Como Rodar
 
----
+### Pré-requisitos
 
-## 🛠️ Tecnologias Utilizadas
+- Node.js (v18+)
+- PostgreSQL
+- Variável de ambiente `URL_BD` configurada
 
-### Backend
-- Node.js
-- Express
-- JavaScript
-- (Banco de dados: adicionar aqui se usar — ex: SQLite / PostgreSQL)
-
-### Frontend (se tiver)
-- HTML
-- CSS
-- JavaScript
-
----
-
-## 📂 Estrutura do Projeto
-
-```
-
-Ficha-Insana/
-│
-├── backend/
-│   ├── routes/
-│   ├── controllers/
-│   ├── models/
-│   └── server.js
-│
-├── frontend/
-│   ├── index.html
-│   ├── style.css
-│   └── script.js
-│
-└── README.md
-
-````
-
-*(Ajuste conforme a estrutura real do seu projeto)*
-
----
-
-## ⚙️ Como Executar o Projeto
-
-### 1️⃣ Clonar o repositório
+### Instalação
 
 ```bash
+# Clonar o repositório
 git clone https://github.com/SamuelzimMVP/Ficha-Insana.git
-````
-
-### 2️⃣ Entrar na pasta do projeto
-
-```bash
 cd Ficha-Insana
-```
 
-### 3️⃣ Instalar dependências (se houver backend)
-
-```bash
+# Instalar dependências
 npm install
-```
 
-### 4️⃣ Rodar o servidor
+# Configurar variáveis de ambiente
+# Crie um arquivo .env com:
+# URL_BD=postgresql://usuario:senha@localhost:5432/seu_banco
+# JWT_SECRET=sua_chave_secreta
 
-```bash
+# Iniciar o servidor
 npm start
 ```
 
-ou
+## 📡 Endpoints da API
 
-```bash
-npm run dev
+### Autenticação
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/register` | Criar conta (username, password, email opcional) |
+| POST | `/login` | Fazer login |
+| GET | `/me` | Dados do usuário logado |
+| PUT | `/profile` | Atualizar perfil |
+
+### Personagens
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/personagens` | Listar personagens (do usuário logado) |
+| GET | `/personagens/:id` | Buscar personagem por ID |
+| POST | `/personagens` | Criar novo personagem |
+| PUT | `/personagens/:id` | Atualizar personagem |
+| DELETE | `/personagens/:id` | Deletar personagem |
+
+## 📁 Estrutura
+
+```
+├── server.js       # Servidor Express principal
+├── package.json    # Dependências
+├── .env            # Variáveis de ambiente
+└── versel.json     # Configuração de deploy
 ```
 
-O servidor iniciará em:
+## 🛠️ Tecnologias
 
+- Node.js + Express
+- PostgreSQL (pg)
+- JWT (jsonwebtoken)
+- Bcrypt (hash de senhas)
+- CORS
+
+## 🔗 Frontend
+
+O frontend está disponível em: [Ficha-FS](https://github.com/SamuelzimMVP/Ficha-FS-)
+
+## 📋 Banco de Dados
+
+Execute o script `BD_UPDATE.sql` (disponível no frontend) para criar as tabelas:
+
+```sql
+-- Tabela de usuários
+CREATE TABLE users (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    email TEXT,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+-- Coluna user_id em characters
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS user_id INTEGER;
+ALTER TABLE characters ADD CONSTRAINT fk_character_user 
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
 ```
-http://localhost:3000
-```
+
+## 🌐 Deploy
+
+Deploy automático na Vercel via `versel.json`.
 
 ---
-
-## 📡 Exemplos de Endpoints (caso seja API)
-
-### 🔹 Criar ficha
-
-```
-POST /fichas
-```
-
-Body:
-
-```json
-{
-  "nome": "Personagem",
-  "classe": "Guerreiro",
-  "nivel": 5
-}
-```
-
----
-
-### 🔹 Listar fichas
-
-```
-GET /fichas
-```
-
----
-
-### 🔹 Atualizar ficha
-
-```
-PUT /fichas/:id
-```
-
----
-
-### 🔹 Remover ficha
-
-```
-DELETE /fichas/:id
-```
-
----
-
-## 🧠 Objetivo do Projeto
-
-Este projeto foi desenvolvido com o objetivo de:
-
-* Praticar criação de APIs REST
-* Estruturar backend em camadas
-* Trabalhar com organização de código
-* Simular um sistema real de gerenciamento
-
----
-
-## 🔮 Melhorias Futuras
-
-* Implementar autenticação com JWT
-* Conectar a banco de dados real
-* Criar validação de dados
-* Adicionar testes automatizados
-* Deploy em plataforma como Render ou Railway
-
----
-
-## 👨‍💻 Autor
-
-**Samuel Rodrigues**
-Desenvolvedor Backend em formação
-JavaScript | Node.js | APIs REST
-
-GitHub: [https://github.com/SamuelzimMVP](https://github.com/SamuelzimMVP)
-LinkedIn: [https://www.linkedin.com/in/samuel-rodrigues-7b7538360/](https://www.linkedin.com/in/samuel-rodrigues-7b7538360/)
-
----
-
-```
+*Falsa Realidade - Sistema de RPG de Mesa | Menor é Melhor! 🎲*
